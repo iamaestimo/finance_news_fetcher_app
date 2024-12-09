@@ -1,18 +1,24 @@
-# FinanceNews
+# Finance News Fetcher App
 
-To start your Phoenix server:
+Phoenix LiveView app to fetch the latest finance news according to a user's topic preferences e.g. "Crypto", "Property", "Financials" news topics.
 
-  * Run `mix setup` to install and setup dependencies
-  * Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
+## How it works
 
-Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
+- User creates an account
+- User is redirected to page to select (financial news) topics of interest
+- User gets toa "feed" page with all the latest news.
 
-Ready to run in production? Please [check our deployment guides](https://hexdocs.pm/phoenix/deployment.html).
+## Stack
 
-## Learn more
+This app is built with:
 
-  * Official website: https://www.phoenixframework.org/
-  * Guides: https://hexdocs.pm/phoenix/overview.html
-  * Docs: https://hexdocs.pm/phoenix
-  * Forum: https://elixirforum.com/c/phoenix-forum
-  * Source: https://github.com/phoenixframework/phoenix
+- Phoenix LiveView
+- Postgresql
+- Alphavantage API (get your key from their website)
+
+## How to setup
+
+- Fork/clone the repo
+- Create a `dev.secret.exs` file and insert your Alphavantage API key in there.
+- Create your database and update `dev.exs` accordingly.
+- Run the server with `mix phx.server`
