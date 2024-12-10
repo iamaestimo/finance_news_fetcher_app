@@ -38,3 +38,6 @@ npm-debug.log
 # dev secrets
 /config/dev.secret.exs
 
+# AppSignal config
+/config/appsignal.exs
+

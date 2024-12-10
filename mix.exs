@@ -60,7 +60,8 @@ defmodule FinanceNews.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
-      {:guardian, "~> 2.0"}
+      {:guardian, "~> 2.0"},
+      {:appsignal, "~> 2.8"}
     ]
   end
 
