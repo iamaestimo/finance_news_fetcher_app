@@ -7,6 +7,7 @@ defmodule FinanceNews.Application do
 
   @impl true
   def start(_type, _args) do
+    Appsignal.Phoenix.LiveView.attach()
     children = [
       FinanceNewsWeb.Telemetry,
       FinanceNews.Repo,

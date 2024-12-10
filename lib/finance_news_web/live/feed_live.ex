@@ -14,7 +14,7 @@ defmodule FinanceNewsWeb.FeedLive do
     {:ok, assign(socket,
       news: news,
       loading: false,
-      page_title: "Your News Feed"
+      page_title: "News Feed - Finance Tracker App"
     )}
   end
 
@@ -22,9 +22,9 @@ defmodule FinanceNewsWeb.FeedLive do
     ~H"""
     <div class="max-w-4xl mx-auto px-4 py-8">
       <div class="flex justify-between items-center mb-8">
-        <h1 class="text-3xl font-bold">Your Financial News Feed</h1>
+        <h1 class="text-3xl font-bold">Your Personalized Financial News Feed</h1>
         <div class="text-sm text-gray-500">
-          Updates every 15 minutes
+          Updates every 6 minutes
         </div>
       </div>
 
