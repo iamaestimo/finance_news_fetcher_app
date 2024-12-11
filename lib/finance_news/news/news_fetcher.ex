@@ -4,7 +4,7 @@ defmodule FinanceNews.News.NewsFetcher do
   alias FinanceNews.News.AlphaVantageClient
   alias FinanceNews.News.NewsCache
 
-  @refresh_interval :timer.minutes(2)
+  @refresh_interval :timer.minutes(5)
 
   def start_link(_opts) do
     GenServer.start_link(__MODULE__, %{}, name: __MODULE__)

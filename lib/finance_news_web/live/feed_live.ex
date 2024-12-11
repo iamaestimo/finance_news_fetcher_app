@@ -24,7 +24,7 @@ defmodule FinanceNewsWeb.FeedLive do
       <div class="flex justify-between items-center mb-8">
         <h1 class="text-3xl font-bold">Your Personalized Financial News Feed</h1>
         <div class="text-sm text-gray-500">
-          Updates every 6 minutes
+          Updates every 5 minutes
         </div>
       </div>
 

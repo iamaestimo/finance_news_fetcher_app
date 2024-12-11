@@ -69,8 +69,16 @@ defmodule FinanceNewsWeb.TopicLive do
 
   def handle_event("toggle_topic", %{"topic" => topic}, socket) do
     current_topics = socket.assigns.selected_topics
+    is_selected = MapSet.member?(current_topics, topic)
+    action = if is_selected, do: "deselect", else: "select"
 
-    new_topics = if MapSet.member?(current_topics, topic) do
+    span = Appsignal.Tracer.create_span("toggle_topic")
+    Appsignal.Span.set_attribute(span, "topic_action", action)
+    Appsignal.Span.set_attribute(span, "topic", topic)
+    Appsignal.Span.set_attribute(span, "total_topics", MapSet.size(current_topics))
+    Appsignal.Span.close(span)
+
+    new_topics = if is_selected do
       MapSet.delete(current_topics, topic)
     else
       if MapSet.size(current_topics) >= 3 do

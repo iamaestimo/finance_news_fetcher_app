@@ -11,6 +11,13 @@ defmodule FinanceNewsWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :fetch_current_user
+    plug :track_request_metadata
+
+    defp client_ip(conn) do
+      conn.remote_ip
+      |> Tuple.to_list()
+      |> Enum.join(".")
+    end
   end
 
   pipeline :api do
@@ -78,5 +85,16 @@ defmodule FinanceNewsWeb.Router do
       live "/users/confirm/:token", UserConfirmationLive, :edit
       live "/users/confirm", UserConfirmationInstructionsLive, :new
     end
+  end
+
+  def track_request_metadata(conn, _opts) do
+    metadata = %{
+      request_id: Logger.metadata()[:request_id],
+      user_agent: get_req_header(conn, "user-agent"),
+      client_ip: client_ip(conn)
+    }
+
+    Appsignal.Span.set_sample_data(Appsignal.Tracer.current_span(), "metadata", metadata)
+    conn
   end
 end
