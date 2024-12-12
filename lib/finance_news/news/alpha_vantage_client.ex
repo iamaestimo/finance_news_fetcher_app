@@ -1,77 +1,73 @@
 defmodule FinanceNews.News.AlphaVantageClient do
   @base_url "https://www.alphavantage.co/query"
-  @timeout :timer.seconds(15)  # 15 second timeout
-  @pool_timeout :timer.seconds(20)  # 20 second pool timeout
+  @timeout :timer.seconds(15)
+  @pool_timeout :timer.seconds(20)
   @max_retries 3
-  @retry_delay 1000 # 1 second
+  @retry_delay 1000
 
   def fetch_news(topics, retry_count \\ 0) when is_list(topics) do
-    topics_string = topics |> Enum.join(",")
+    Appsignal.instrument("AlphaVantage.fetch_news", fn ->
+      if Enum.empty?(topics) do
+        {:ok, %{"feed" => []}}
+      else
+        topics_string = topics |> Enum.join(",")
 
-    query_params = URI.encode_query(%{
-      "function" => "NEWS_SENTIMENT",
-      "topics" => topics_string,
-      "apikey" => api_key(),
-      "sort" => "LATEST",
-      "limit" => "50"
-    })
+        query_params = URI.encode_query(%{
+          "function" => "NEWS_SENTIMENT",
+          "topics" => topics_string,
+          "apikey" => api_key(),
+          "sort" => "LATEST",
+          "limit" => "50"
+        })
 
-    url = "#{@base_url}?#{query_params}"
+        url = "#{@base_url}?#{query_params}"
 
-    # Add timeout options to the request
+        case make_request(url, retry_count) do
+          {:ok, response} -> {:ok, response}
+          {:error, reason} -> {:error, reason}
+        end
+      end
+    end)
+  end
+
+  defp make_request(url, retry_count) do
     case Finch.build(:get, url)
          |> Finch.request(FinanceNewsFinch,
            receive_timeout: @timeout,
            pool_timeout: @pool_timeout) do
       {:ok, %Finch.Response{body: body, status: 200}} ->
-        {:ok, Jason.decode!(body)}
+        case Jason.decode(body) do
+          {:ok, decoded} -> {:ok, decoded}
+          {:error, _} -> {:error, "Invalid JSON response"}
+        end
+
+      {:ok, %Finch.Response{status: 429}} ->
+        handle_retry("Rate limited", url, retry_count)
 
       {:ok, %Finch.Response{status: status}} ->
-        {:error, "API returned status #{status}"}
+        handle_retry("API returned status #{status}", url, retry_count)
 
       {:error, %Mint.TransportError{reason: :timeout}} ->
-        {:error, "Request timed out after #{@timeout}ms"}
+        handle_retry("Request timed out", url, retry_count)
 
       {:error, reason} ->
-        {:error, "Failed to fetch news: #{inspect(reason)}"}
-    end
-
-    case make_request(url) do
-      {:ok, response} ->
-        {:ok, response}
-
-      {:error, _reason} when retry_count < @max_retries ->
-        Process.sleep(@retry_delay)
-        fetch_news(topics, retry_count + 1)
-
-      {:error, reason} ->
-        {:error, reason}
+        handle_retry("Request failed: #{inspect(reason)}", url, retry_count)
     end
   end
 
-  defp make_request(url) do
-    Finch.build(:get, url)
-    |> Finch.request(FinanceNewsFinch,
-      receive_timeout: @timeout,
-      pool_timeout: @pool_timeout)
-    |> handle_response()
+  defp handle_retry(reason, url, retry_count) do
+    if retry_count < @max_retries do
+      Process.sleep(@retry_delay)
+      make_request(url, retry_count + 1)
+    else
+      {:error, reason}
+    end
   end
 
-  defp handle_response({:ok, %Finch.Response{body: body, status: 200}}) do
-    {:ok, Jason.decode!(body)}
+  defp api_key do
+    case Application.fetch_env!(:finance_news, :alphavantage_api_key) do
+      key when is_binary(key) and byte_size(key) > 0 -> key
+      _ -> raise "Invalid or missing AlphaVantage API key"
+    end
   end
-
-  defp handle_response({:ok, %Finch.Response{status: status}}) do
-    {:error, "API returned status #{status}"}
-  end
-
-  defp handle_response({:error, %Mint.TransportError{reason: :timeout}}) do
-    {:error, "Request timed out"}
-  end
-
-  defp handle_response({:error, reason}) do
-    {:error, "Failed to fetch news: #{inspect(reason)}"}
-  end
-
-  defp api_key, do: Application.fetch_env!(:finance_news, :alphavantage_api_key)
 end

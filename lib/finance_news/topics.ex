@@ -9,19 +9,28 @@ defmodule FinanceNews.Topics do
   alias FinanceNews.Topics.UserTopic
 
   @doc """
-  Returns the list of topics for a user.
+Returns the list of topics for a user.
 
-  ## Examples
+## Examples
 
-      iex> list_user_topics(user)
-      [%UserTopic{}, ...]
+    iex> list_user_topics(user)
+    [%UserTopic{}, ...]
 
-  """
-  def list_user_topics(user) do
-    UserTopic
-    |> where([t], t.user_id == type(^user.id, :binary_id))
-    |> Repo.all()
+    iex> list_user_topics(nil)
+    []
+
+"""
+def list_user_topics(nil), do: []  # Handle nil user
+def list_user_topics(%{id: nil}), do: []  # Handle user with nil id
+def list_user_topics(user) do
+  UserTopic
+  |> where([t], t.user_id == type(^user.id, :binary_id))
+  |> Repo.all()
+  |> case do
+    nil -> []  # Handle nil result from database
+    topics -> topics
   end
+end
 
   @doc """
   Returns a list of unique topics that are currently selected by users.

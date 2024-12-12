@@ -93,15 +93,17 @@ defmodule FinanceNewsWeb.TopicLive do
   end
 
   def handle_event("save_topics", _, socket) do
-    user = socket.assigns.current_user
-    topics = MapSet.to_list(socket.assigns.selected_topics)
+    Appsignal.instrument("Topics.save_topics", fn ->
+      user = socket.assigns.current_user
+      topics = MapSet.to_list(socket.assigns.selected_topics)
 
-    case Topics.update_user_topics(user, topics) do
-      {:ok, _} ->
-        {:noreply, push_navigate(socket, to: ~p"/feed")}
+      case Topics.update_user_topics(user, topics) do
+        {:ok, _} ->
+          {:noreply, push_navigate(socket, to: ~p"/feed")}
 
-      {:error, _} ->
-        {:noreply, assign(socket, error_message: "Failed to save topics. Please try again.")}
-    end
+        {:error, _} ->
+          {:noreply, assign(socket, error_message: "Failed to save topics. Please try again.")}
+      end
+    end)
   end
 end
